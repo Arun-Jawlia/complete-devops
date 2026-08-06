@@ -1,4 +1,4 @@
-````markdown
+
 # 🚀 DevOps Mastery Roadmap
 
 > A complete, structured, hands-on DevOps learning repository covering Linux, Networking, Git, Docker, Kubernetes, CI/CD, Cloud, Infrastructure as Code, Monitoring, Security, and Production Projects.
@@ -495,4 +495,4 @@ If you find this repository helpful:
 ## 🚀 Happy Learning!
 
 > **"Learn → Practice → Build → Deploy → Repeat."**
-````
+
