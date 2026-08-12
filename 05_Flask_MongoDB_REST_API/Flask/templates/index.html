@@ -3,22 +3,72 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sign Up Form</title>
+    <title>Registration Page</title>
   </head>
   <style>
-    body {
-      background-color: black;
-    }
-
     p {
       text-align: center;
       font-size: 30px;
       font-family: Arial, Helvetica, sans-serif;
-      color: yellow;
+      color: black;
+    }
+
+    #form_container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+    }
+
+    form {
+      border: 1px solid black;
+      padding: 10px;
+    }
+
+    form > label {
+    }
+
+    form > input {
+      display: block;
+      margin-bottom: 10px;
+      margin-top: 5px;
     }
   </style>
   <body>
     <p>Hi, Welcome to the Signup Page</p>
     <p>Current Time: {{today}}</p>
+    <div id="form_container">
+      <form action="/submit" method="post">
+        <label for="name">Name</label>
+        <input
+          type="text"
+          name="name"
+          id="name"
+          placeholder="Enter your name"
+        />
+        <label for="email">Email</label>
+        <input
+          type="text"
+          name="email"
+          id="email"
+          placeholder="Enter your email"
+        />
+        <label for="password">Password</label>
+        <input
+          type="password"
+          name="password"
+          id="password"
+          placeholder="Enter your password"
+        />
+        <label for="confirm_password">Confirm Password</label>
+        <input
+          type="password"
+          name="confirm_password"
+          id="confirm_password"
+          placeholder="Confirm your password"
+        />
+        <input type="submit" value="Submit" />
+      </form>
+    </div>
   </body>
 </html>
