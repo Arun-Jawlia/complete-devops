@@ -712,3 +712,946 @@ docker start my-nginx
 ```
 
 **Key rule:** `pull` gets an **image**, `run` creates a **new container**, `ps` views containers, `stop` stops a container, `start` restarts an existing container, and `-p` connects a **host port to a container port**.
+
+---
+# `Notes 2`
+# Main Docker Commands
+
+These commands form the basic Docker workflow:
+
+```text
+Docker Registry
+      │
+      │ docker pull
+      ↓
+Docker Image
+      │
+      │ docker run
+      ↓
+Docker Container
+      │
+      ├── docker ps
+      ├── docker stop
+      └── docker start
+```
+
+We'll use **Nginx** as the example because it makes container and port concepts easy to understand.
+
+---
+
+# 1. `docker pull`
+
+## What is `docker pull`?
+
+`docker pull` downloads a **Docker image from a container registry** to your local machine.
+
+Syntax:
+
+```bash
+docker pull IMAGE_NAME
+```
+
+Example:
+
+```bash
+docker pull nginx
+```
+
+Docker looks for the image in the default registry, usually **Docker Hub**.
+
+Conceptually:
+
+```text
+Docker Hub
+    │
+    │ docker pull nginx
+    ↓
+Your Computer
+    │
+    └── nginx image
+```
+
+Check downloaded images:
+
+```bash
+docker images
+```
+
+You may see:
+
+```text
+REPOSITORY   TAG       IMAGE ID       CREATED       SIZE
+nginx        latest    abc123...      ...           ...
+```
+
+### Image tag
+
+You can specify a particular version:
+
+```bash
+docker pull nginx:1.27
+```
+
+If you don't specify a tag:
+
+```bash
+docker pull nginx
+```
+
+Docker uses:
+
+```text
+nginx:latest
+```
+
+So:
+
+```text
+nginx
+   ↓
+nginx:latest
+```
+
+### Important
+
+`docker pull` **only downloads the image**.
+
+It does **not** start a container.
+
+```bash
+docker pull nginx
+```
+
+means:
+
+> "Download the nginx image."
+
+It does not mean:
+
+> "Run nginx."
+
+---
+
+# 2. `docker run`
+
+## What is `docker run`?
+
+`docker run` creates a **new container from an image and starts it**.
+
+Syntax:
+
+```bash
+docker run IMAGE_NAME
+```
+
+Example:
+
+```bash
+docker run nginx
+```
+
+Conceptually:
+
+```text
+nginx Image
+     │
+     │ docker run
+     ↓
+New Container
+     │
+     ↓
+Running Nginx
+```
+
+### What actually happens?
+
+When you run:
+
+```bash
+docker run nginx
+```
+
+Docker roughly performs:
+
+```text
+1. Check whether nginx image exists locally
+             ↓
+2. If not, pull the image
+             ↓
+3. Create a container
+             ↓
+4. Configure the container
+             ↓
+5. Start the container
+```
+
+Therefore:
+
+```bash
+docker run nginx
+```
+
+can effectively perform a pull automatically if the image isn't already present.
+
+---
+
+# 3. `docker run` vs `docker pull`
+
+This distinction is important.
+
+### `docker pull`
+
+```bash
+docker pull nginx
+```
+
+Only downloads:
+
+```text
+Registry → Local Image
+```
+
+### `docker run`
+
+```bash
+docker run nginx
+```
+
+Creates and starts:
+
+```text
+Image → Container → Running Application
+```
+
+---
+
+# 4. Running a Container in Background
+
+By default:
+
+```bash
+docker run nginx
+```
+
+runs the container attached to your terminal.
+
+For server applications, you usually want **detached mode**:
+
+```bash
+docker run -d nginx
+```
+
+`-d` means:
+
+> **Detached mode**
+
+Now your terminal is immediately available again.
+
+Check the container:
+
+```bash
+docker ps
+```
+
+Example:
+
+```text
+CONTAINER ID   IMAGE   STATUS          PORTS
+a1b2c3d4       nginx   Up 10 seconds
+```
+
+---
+
+# 5. Give the Container a Name
+
+Instead of allowing Docker to generate a random container name:
+
+```bash
+docker run -d nginx
+```
+
+you can specify one:
+
+```bash
+docker run -d --name my-nginx nginx
+```
+
+Now:
+
+```bash
+docker ps
+```
+
+might show:
+
+```text
+CONTAINER ID   IMAGE   STATUS        NAMES
+a1b2c3d4       nginx   Up 10 sec     my-nginx
+```
+
+This makes container management much easier.
+
+---
+
+# 6. `docker ps`
+
+## What is `docker ps`?
+
+`docker ps` displays **currently running containers**.
+
+```bash
+docker ps
+```
+
+Example:
+
+```text
+CONTAINER ID   IMAGE   COMMAND                  STATUS         PORTS   NAMES
+a12bc34def56   nginx   "/docker-entrypoint…"   Up 2 minutes           my-nginx
+```
+
+Important columns:
+
+| Column       | Meaning                               |
+| ------------ | ------------------------------------- |
+| CONTAINER ID | Unique container identifier           |
+| IMAGE        | Image used to create container        |
+| COMMAND      | Main command running inside container |
+| STATUS       | Current container state               |
+| PORTS        | Port mappings                         |
+| NAMES        | Container name                        |
+
+---
+
+# 7. `docker ps -a`
+
+By default:
+
+```bash
+docker ps
+```
+
+shows **only running containers**.
+
+To see:
+
+* Running containers
+* Stopped containers
+* Exited containers
+
+use:
+
+```bash
+docker ps -a
+```
+
+Example:
+
+```text
+CONTAINER ID   IMAGE   STATUS                     NAMES
+a123           nginx   Up 5 minutes               my-nginx
+b456           nginx   Exited (0) 2 hours ago     old-nginx
+c789           redis   Exited (0) 1 day ago       redis-test
+```
+
+Remember:
+
+```text
+docker ps
+    ↓
+Running containers only
+
+docker ps -a
+    ↓
+All containers
+```
+
+---
+
+# 8. `docker stop`
+
+## What is `docker stop`?
+
+`docker stop` gracefully stops a **running container**.
+
+Syntax:
+
+```bash
+docker stop CONTAINER
+```
+
+Example:
+
+```bash
+docker stop my-nginx
+```
+
+Or using the container ID:
+
+```bash
+docker stop a12bc34def56
+```
+
+Conceptually:
+
+```text
+Running Container
+       │
+       │ docker stop
+       ↓
+Stopped Container
+```
+
+### Important
+
+`docker stop` does **not delete the container**.
+
+After:
+
+```bash
+docker stop my-nginx
+```
+
+the container still exists.
+
+Check:
+
+```bash
+docker ps -a
+```
+
+You'll see something like:
+
+```text
+my-nginx   Exited (0)
+```
+
+---
+
+# 9. `docker start`
+
+## What is `docker start`?
+
+`docker start` starts an **existing stopped container**.
+
+Example:
+
+```bash
+docker start my-nginx
+```
+
+Conceptually:
+
+```text
+Stopped Container
+       │
+       │ docker start
+       ↓
+Running Container
+```
+
+### Important distinction
+
+`docker start` does **not create a new container**.
+
+It starts an existing one.
+
+---
+
+# 10. `docker run` vs `docker start`
+
+This is one of the most important interview questions.
+
+### `docker run`
+
+Creates a **new container**.
+
+```bash
+docker run -d --name my-nginx nginx
+```
+
+```text
+Image
+  ↓
+NEW Container
+  ↓
+Running
+```
+
+### `docker start`
+
+Starts an **existing container**.
+
+```bash
+docker start my-nginx
+```
+
+```text
+Existing Container
+       ↓
+    Running
+```
+
+Therefore:
+
+```text
+docker run
+    ↓
+CREATE + START
+
+docker start
+    ↓
+START existing container
+```
+
+---
+
+# 11. Container Lifecycle
+
+You can visualize the commands like this:
+
+```text
+                 Docker Image
+                      │
+                      │ docker run
+                      ↓
+              ┌───────────────┐
+              │   Container   │
+              │    Running    │
+              └───────┬───────┘
+                      │
+                docker stop
+                      ↓
+              ┌───────────────┐
+              │   Container   │
+              │    Stopped    │
+              └───────┬───────┘
+                      │
+                docker start
+                      ↓
+              ┌───────────────┐
+              │   Container   │
+              │    Running    │
+              └───────────────┘
+```
+
+---
+
+# 12. Port Mapping
+
+This is one of the most important Docker concepts.
+
+Suppose Nginx is running inside a container.
+
+Nginx listens on:
+
+```text
+Container Port: 80
+```
+
+But your browser is outside the container.
+
+You need a way to access:
+
+```text
+Your Computer → Container
+```
+
+That's where **port mapping** comes in.
+
+---
+
+# 13. The `-p` Option
+
+Docker uses:
+
+```bash
+-p HOST_PORT:CONTAINER_PORT
+```
+
+Example:
+
+```bash
+docker run -d -p 8080:80 nginx
+```
+
+This means:
+
+```text
+Host Port       Container Port
+    8080   →        80
+```
+
+So:
+
+```text
+Browser
+   │
+   │ http://localhost:8080
+   ↓
+Host Machine
+   │
+   │ Port 8080
+   ↓
+Docker
+   │
+   │ Port 80
+   ↓
+Nginx Container
+   │
+   │ Port 80
+   ↓
+Nginx
+```
+
+Open:
+
+```text
+http://localhost:8080
+```
+
+You should get the Nginx welcome page.
+
+---
+
+# 14. Why Do We Need Port Mapping?
+
+Containers have their own network namespace.
+
+Suppose Nginx listens on:
+
+```text
+Container
+    ↓
+Port 80
+```
+
+That does not automatically mean you can access it using:
+
+```text
+localhost:80
+```
+
+on your host machine.
+
+You explicitly publish the port:
+
+```bash
+docker run -d -p 8080:80 nginx
+```
+
+Now:
+
+```text
+Host                 Container
+
+8080  ─────────────→ 80
+```
+
+---
+
+# 15. Host Port vs Container Port
+
+This is frequently confusing.
+
+In:
+
+```bash
+docker run -d -p 8080:80 nginx
+```
+
+the order is:
+
+```text
+-p HOST_PORT:CONTAINER_PORT
+```
+
+Therefore:
+
+```text
+8080 = Host port
+80   = Container port
+```
+
+### Memory trick
+
+Read it from left to right:
+
+```text
+-p
+
+MY COMPUTER : CONTAINER
+     ↓           ↓
+   8080    :     80
+```
+
+---
+
+# 16. Change the Host Port
+
+The container's application may listen on port 80.
+
+You can expose it through any available host port.
+
+For example:
+
+```bash
+docker run -d -p 3000:80 nginx
+```
+
+Now:
+
+```text
+localhost:3000
+       ↓
+Container:80
+```
+
+Or:
+
+```bash
+docker run -d -p 8080:80 nginx
+```
+
+```text
+localhost:8080
+       ↓
+Container:80
+```
+
+Or:
+
+```bash
+docker run -d -p 5000:80 nginx
+```
+
+```text
+localhost:5000
+       ↓
+Container:80
+```
+
+The Nginx container still listens on:
+
+```text
+80
+```
+
+Only the host-side published port changes.
+
+---
+
+# 17. Multiple Containers
+
+This becomes useful when running multiple services.
+
+Suppose:
+
+```text
+Frontend Container
+    Container Port: 3000
+
+Backend Container
+    Container Port: 5000
+
+Nginx Container
+    Container Port: 80
+```
+
+You could map them:
+
+```text
+Host               Container
+────────────────────────────────
+localhost:3000  →  Frontend:3000
+localhost:5000  →  Backend:5000
+localhost:8080  →  Nginx:80
+```
+
+Commands:
+
+```bash
+docker run -d -p 3000:3000 frontend
+```
+
+```bash
+docker run -d -p 5000:5000 backend
+```
+
+```bash
+docker run -d -p 8080:80 nginx
+```
+
+---
+
+# 18. Complete Practical Example
+
+Let's build the entire flow.
+
+### Step 1 — Download Nginx
+
+```bash
+docker pull nginx
+```
+
+### Step 2 — Check image
+
+```bash
+docker images
+```
+
+### Step 3 — Create and run container
+
+```bash
+docker run -d --name my-nginx -p 8080:80 nginx
+```
+
+Now:
+
+```text
+Docker Image
+    │
+    │ docker run
+    ↓
+my-nginx Container
+    │
+    │ Port 80
+    ↓
+Nginx
+```
+
+### Step 4 — Check container
+
+```bash
+docker ps
+```
+
+### Step 5 — Open browser
+
+```text
+http://localhost:8080
+```
+
+### Step 6 — Stop container
+
+```bash
+docker stop my-nginx
+```
+
+### Step 7 — Verify
+
+```bash
+docker ps
+```
+
+It won't appear because it is stopped.
+
+But:
+
+```bash
+docker ps -a
+```
+
+will show it.
+
+### Step 8 — Start it again
+
+```bash
+docker start my-nginx
+```
+
+### Step 9 — Check
+
+```bash
+docker ps
+```
+
+### Step 10 — Open browser again
+
+```text
+http://localhost:8080
+```
+
+Nginx is running again.
+
+---
+
+# 19. Important Command Cheat Sheet
+
+| Command                       | Purpose                           |
+| ----------------------------- | --------------------------------- |
+| `docker pull nginx`           | Download image                    |
+| `docker images`               | List images                       |
+| `docker run nginx`            | Create + start container          |
+| `docker run -d nginx`         | Run in background                 |
+| `docker run --name app nginx` | Give container a name             |
+| `docker run -p 8080:80 nginx` | Map host port 8080 → container 80 |
+| `docker ps`                   | Show running containers           |
+| `docker ps -a`                | Show all containers               |
+| `docker stop app`             | Stop container                    |
+| `docker start app`            | Start existing container          |
+
+---
+
+# 20. The Most Important Mental Model
+
+Memorize this:
+
+```text
+                 REGISTRY
+                    │
+              docker pull
+                    ↓
+                 IMAGE
+                    │
+              docker run
+                    ↓
+               CONTAINER
+                    │
+          ┌─────────┴─────────┐
+          │                   │
+     docker stop         docker ps
+          │
+          ↓
+       STOPPED
+          │
+      docker start
+          │
+          ↓
+       RUNNING
+```
+
+And for networking:
+
+```text
+Browser
+   │
+   │ localhost:8080
+   ↓
+HOST PORT 8080
+   │
+   │ -p 8080:80
+   ↓
+CONTAINER PORT 80
+   │
+   ↓
+Nginx
+```
+
+### Three distinctions you should be able to explain in an interview
+
+**`docker pull`**
+
+> Downloads an image from a registry.
+
+**`docker run`**
+
+> Creates a new container from an image and starts it.
+
+**`docker start`**
+
+> Starts an existing stopped container.
+
+And:
+
+> **Port mapping connects a port on the host machine to a port exposed/listened to by an application inside the container.**
